@@ -355,6 +355,12 @@ function App() {
     }
 
     setIsSaving(true)
+    
+    // Open the Google Doc first, before the async operation
+    // This ensures it's triggered by user action and won't be blocked by popup blockers
+    const docUrl = `https://docs.google.com/document/d/${GOOGLE_DOC_ID}/edit`
+    const docWindow = window.open(docUrl, '_blank', 'noopener,noreferrer')
+    
     try {
       const subjectSummaries = selectedSubjects.map(subject => ({
         subject,
@@ -390,13 +396,26 @@ function App() {
 
       // With no-cors mode, we can't read the response, so just assume success
       alert(`Successfully saved ${studentName}'s GPA (${gpa?.toFixed(2)}) to Google Doc!`)
-      window.open(`https://docs.google.com/document/d/${GOOGLE_DOC_ID}/edit`, '_blank', 'noopener')
+      
+      // Check if popup was blocked
+      if (!docWindow || docWindow.closed || typeof docWindow.closed === 'undefined') {
+        // Popup was blocked, provide a fallback
+        const openNow = confirm('The Google Doc popup was blocked. Click OK to open it now.')
+        if (openNow) {
+          window.open(docUrl, '_blank', 'noopener,noreferrer')
+        }
+      }
+      
       setShowSaveDialog(false)
       setStudentName('')
       setSaveAttempts(0)
     } catch (error) {
       console.error('Failed to save GPA to Google Doc:', error)
       alert(`Failed to save to Google Doc. ${error.message ?? ''}`.trim())
+      // Close the doc window if save failed
+      if (docWindow && !docWindow.closed) {
+        docWindow.close()
+      }
     } finally {
       setIsSaving(false)
     }
