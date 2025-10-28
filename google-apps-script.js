@@ -24,13 +24,35 @@ function doPost(e) {
     const doc = DocumentApp.openById(GOOGLE_DOC_ID);
     const body = doc.getBody();
     
-    // Check if table exists, if not create it
-    let table = null;
-    const tables = body.getTables();
+    // Get the current term from the data
+    const currentTerm = data.currentTerm || 'Unknown Term';
     
-    if (tables.length === 0) {
-      // Create header
-      body.appendParagraph('GPA Records').setHeading(DocumentApp.ParagraphHeading.HEADING1);
+    // Look for existing term section
+    let table = null;
+    const paragraphs = body.getParagraphs();
+    let termHeadingIndex = -1;
+    
+    // Search for the term heading
+    for (let i = 0; i < paragraphs.length; i++) {
+      const text = paragraphs[i].getText();
+      if (text === currentTerm) {
+        termHeadingIndex = i;
+        break;
+      }
+    }
+    
+    if (termHeadingIndex === -1) {
+      // Term section doesn't exist, create it
+      // If this is the first term, add main heading
+      if (body.getNumChildren() === 0) {
+        body.appendParagraph('GPA Records').setHeading(DocumentApp.ParagraphHeading.HEADING1);
+        body.appendParagraph(''); // Spacing
+      }
+      
+      // Add term heading
+      const termHeading = body.appendParagraph(currentTerm);
+      termHeading.setHeading(DocumentApp.ParagraphHeading.HEADING2);
+      termHeading.setForegroundColor('#8B5CF6');
       body.appendParagraph(''); // Spacing
       
       // Create table with headers
@@ -48,8 +70,39 @@ function doPost(e) {
         cell.getChild(0).asText().setForegroundColor('#FFFFFF').setBold(true);
         cell.setPaddingTop(8).setPaddingBottom(8).setPaddingLeft(8).setPaddingRight(8);
       }
+      
+      body.appendParagraph(''); // Spacing after table
     } else {
-      table = tables[0];
+      // Find the table after the term heading
+      const allTables = body.getTables();
+      for (let i = 0; i < allTables.length; i++) {
+        const tableIndex = body.getChildIndex(allTables[i]);
+        if (tableIndex > termHeadingIndex) {
+          table = allTables[i];
+          break;
+        }
+      }
+      
+      // If no table found after heading, create one
+      if (!table) {
+        const termParagraph = paragraphs[termHeadingIndex];
+        const termIndex = body.getChildIndex(termParagraph);
+        
+        table = body.insertTable(termIndex + 1);
+        const headerRow = table.appendTableRow();
+        headerRow.appendTableCell('Date');
+        headerRow.appendTableCell('Student Name');
+        headerRow.appendTableCell('Current GPA');
+        headerRow.appendTableCell('Subjects');
+        
+        // Style header row
+        for (let i = 0; i < 4; i++) {
+          const cell = headerRow.getCell(i);
+          cell.setBackgroundColor('#8B5CF6');
+          cell.getChild(0).asText().setForegroundColor('#FFFFFF').setBold(true);
+          cell.setPaddingTop(8).setPaddingBottom(8).setPaddingLeft(8).setPaddingRight(8);
+        }
+      }
     }
     
     // Format the data
