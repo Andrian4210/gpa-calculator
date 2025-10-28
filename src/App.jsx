@@ -37,16 +37,20 @@ const GRADE_OPTIONS = Object.keys(GRADES)
 const MAX_SUBJECTS = 8
 const TERMS = ['Term 1', 'Term 2', 'Term 3', 'Term 4']
 const FINAL_TERMS = new Set(['Term 2', 'Term 4'])
+// Semester subjects (0.3 weight) - only have Term 1-2 OR Term 3-4
 const SEMESTER_SUBJECTS = new Set([
   'Visual Art',
   'Media',
   'Drama',
   'Music',
-  'Spanish',
-  'Japanese',
-  'HPE',
   'Digital',
   'Design'
+])
+// Three-term subjects (0.6 weight) - have Term 1, 2, 3 (no Term 4)
+const THREE_TERM_SUBJECTS = new Set([
+  'Spanish',
+  'Japanese',
+  'HPE'
 ])
 const GOOGLE_DOC_ID = '1ICuIvuBC-uTpdKCgQWYNKqAfPfnOzOQPIyLYMoXhqvo'
 const GOOGLE_APPS_SCRIPT_URL = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbyjgbJvf_vTYx3WzoKqL0Tah8QsHYiPvaL3WPlThWpQAFMB9z0nvDKbqT2RigFMaYyI/exec'
@@ -160,11 +164,21 @@ function App() {
   }
 
   const isSemesterSubject = (subject) => SEMESTER_SUBJECTS.has(subject)
+  const isThreeTermSubject = (subject) => THREE_TERM_SUBJECTS.has(subject)
 
   const getTermsForSubject = (subject) => {
     const currentTermIndex = TERMS.indexOf(currentTerm)
     if (currentTermIndex === -1) return TERMS
 
+    // Three-term subjects: only Term 1, 2, 3
+    if (isThreeTermSubject(subject)) {
+      if (currentTerm === 'Term 1') return ['Term 1']
+      if (currentTerm === 'Term 2') return ['Term 1', 'Term 2']
+      if (currentTerm === 'Term 3') return ['Term 1', 'Term 2', 'Term 3']
+      return ['Term 1', 'Term 2', 'Term 3'] // Term 4 still shows Term 1-3
+    }
+
+    // Semester subjects: Term 1-2 OR Term 3-4
     if (isSemesterSubject(subject)) {
       if (currentTerm === 'Term 1') return ['Term 1']
       if (currentTerm === 'Term 2') return ['Term 1', 'Term 2']
@@ -172,10 +186,19 @@ function App() {
       return ['Term 3', 'Term 4']
     }
 
+    // Full-year subjects: all terms up to current
     return TERMS.slice(0, currentTermIndex + 1)
   }
 
-  const canCaptureSemesterFinal = (subject) => isSemesterSubject(subject) && FINAL_TERMS.has(currentTerm)
+  const canCaptureSemesterFinal = (subject) => {
+    if (isSemesterSubject(subject)) {
+      return FINAL_TERMS.has(currentTerm)
+    }
+    if (isThreeTermSubject(subject)) {
+      return currentTerm === 'Term 3' // Final grade captured at Term 3
+    }
+    return false
+  }
 
   const handleTermGradeChange = (subject, term, grade) => {
     setTermGrades(prev => ({
