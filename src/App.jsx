@@ -71,6 +71,8 @@ function App() {
   const [isSaving, setIsSaving] = useState(false)
   const [saveAttempts, setSaveAttempts] = useState(0)
   const [userDismissedDialog, setUserDismissedDialog] = useState(false)
+  const [customTargetGPA, setCustomTargetGPA] = useState('')
+  const [targetGPAs, setTargetGPAs] = useState([13.5, 14.0, 14.5])
 
   const handleSubjectToggle = (subject, checked) => {
     if (checked) {
@@ -850,8 +852,44 @@ function App() {
                 </p>
               </div>
               <div className="liquid-glass-card-content">
+                {/* Custom Target GPA Input */}
+                <div className="liquid-glass-custom-target">
+                  <div className="liquid-glass-input-group">
+                    <label className="liquid-glass-input-label">Add Custom Target GPA:</label>
+                    <div className="liquid-glass-custom-target-input-wrapper">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="15"
+                        step="0.1"
+                        value={customTargetGPA}
+                        onChange={(e) => setCustomTargetGPA(e.target.value)}
+                        placeholder="e.g., 13.8"
+                        className="liquid-glass-input liquid-glass-custom-target-input"
+                      />
+                      <Button
+                        onClick={() => {
+                          const gpaValue = parseFloat(customTargetGPA)
+                          if (gpaValue && gpaValue > 0 && gpaValue <= 15 && !targetGPAs.includes(gpaValue)) {
+                            setTargetGPAs([...targetGPAs, gpaValue].sort((a, b) => a - b))
+                            setCustomTargetGPA('')
+                          } else if (targetGPAs.includes(gpaValue)) {
+                            alert('This target GPA is already in the list!')
+                          } else {
+                            alert('Please enter a valid GPA between 0 and 15')
+                          }
+                        }}
+                        disabled={!customTargetGPA}
+                        className="liquid-glass-button liquid-glass-add-target-button"
+                      >
+                        Add Target
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="liquid-glass-requirements">
-                  {[13.5, 14.0, 14.5].map(targetGPA => {
+                  {targetGPAs.map(targetGPA => {
                     const requirements = calculateRequiredGrades(targetGPA)
                     const hasUnenteredGrades = Object.keys(requirements.grades).length > 0
                     
@@ -859,8 +897,19 @@ function App() {
                       <div key={targetGPA} className="liquid-glass-requirement-item">
                         <div className="liquid-glass-requirement-header">
                           <h4 className="liquid-glass-requirement-title">Target GPA: {targetGPA}</h4>
-                          <div className={`liquid-glass-requirement-badge ${requirements.possible ? 'liquid-glass-badge-success' : 'liquid-glass-badge-error'}`}>
-                            {requirements.possible ? "Achievable" : "Not Possible"}
+                          <div className="liquid-glass-requirement-header-actions">
+                            <div className={`liquid-glass-requirement-badge ${requirements.possible ? 'liquid-glass-badge-success' : 'liquid-glass-badge-error'}`}>
+                              {requirements.possible ? "Achievable" : "Not Possible"}
+                            </div>
+                            {!([13.5, 14.0, 14.5].includes(targetGPA)) && (
+                              <button
+                                onClick={() => setTargetGPAs(targetGPAs.filter(gpa => gpa !== targetGPA))}
+                                className="liquid-glass-remove-target-button"
+                                title="Remove this target"
+                              >
+                                ×
+                              </button>
+                            )}
                           </div>
                         </div>
                         
