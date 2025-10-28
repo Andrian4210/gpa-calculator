@@ -3,6 +3,47 @@
 
 const GOOGLE_DOC_ID = '1ICuIvuBC-uTpdKCgQWYNKqAfPfnOzOQPIyLYMoXhqvo';
 
+// Content moderation function
+function isInappropriateName(name) {
+  // Convert to lowercase for case-insensitive checking
+  const lowerName = name.toLowerCase().trim();
+  
+  // List of inappropriate words/patterns
+  const inappropriateWords = [
+    'fuck', 'shit', 'damn', 'bitch', 'ass', 'crap', 'piss', 'dick', 'cock', 
+    'pussy', 'cunt', 'bastard', 'whore', 'slut', 'nigger', 'nigga', 'fag', 
+    'faggot', 'retard', 'penis', 'vagina', 'sex', 'porn', 'xxx', 'kill', 
+    'die', 'death', 'hitler', 'nazi', 'kkk', 'terrorist', 'bomb', 'rape',
+    'idiot', 'stupid', 'dumb', 'moron', 'loser', 'hate', 'kys'
+  ];
+  
+  // Check if name contains any inappropriate words
+  for (let word of inappropriateWords) {
+    if (lowerName.includes(word)) {
+      return true;
+    }
+  }
+  
+  // Check for excessive special characters or numbers (likely fake names)
+  const specialCharCount = (lowerName.match(/[^a-z\s\-']/g) || []).length;
+  if (specialCharCount > 3) {
+    return true;
+  }
+  
+  // Check if name is too short (less than 2 characters)
+  if (lowerName.replace(/\s/g, '').length < 2) {
+    return true;
+  }
+  
+  // Check for repeated characters (like "aaaaaaa" or "111111")
+  const hasExcessiveRepetition = /(.)\1{4,}/.test(lowerName);
+  if (hasExcessiveRepetition) {
+    return true;
+  }
+  
+  return false;
+}
+
 function doPost(e) {
   try {
     // Parse the incoming data - handle both JSON and form data
@@ -18,6 +59,15 @@ function doPost(e) {
       data = JSON.parse(e.parameter.data);
     } else {
       throw new Error('No data received');
+    }
+    
+    // Validate student name
+    if (!data.studentName || !data.studentName.trim()) {
+      throw new Error('Student name is required');
+    }
+    
+    if (isInappropriateName(data.studentName)) {
+      throw new Error('The name provided appears to be inappropriate or invalid. Please use your real name.');
     }
     
     // Open the Google Doc

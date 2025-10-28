@@ -55,6 +55,46 @@ const THREE_TERM_SUBJECTS = new Set([
 const GOOGLE_DOC_ID = '1ICuIvuBC-uTpdKCgQWYNKqAfPfnOzOQPIyLYMoXhqvo'
 const GOOGLE_APPS_SCRIPT_URL = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbyjgbJvf_vTYx3WzoKqL0Tah8QsHYiPvaL3WPlThWpQAFMB9z0nvDKbqT2RigFMaYyI/exec'
 
+// Content moderation function
+const isInappropriateName = (name) => {
+  const lowerName = name.toLowerCase().trim()
+  
+  // List of inappropriate words/patterns
+  const inappropriateWords = [
+    'fuck', 'shit', 'damn', 'bitch', 'ass', 'crap', 'piss', 'dick', 'cock', 
+    'pussy', 'cunt', 'bastard', 'whore', 'slut', 'nigger', 'nigga', 'fag', 
+    'faggot', 'retard', 'penis', 'vagina', 'sex', 'porn', 'xxx', 'kill', 
+    'die', 'death', 'hitler', 'nazi', 'kkk', 'terrorist', 'bomb', 'rape',
+    'idiot', 'stupid', 'dumb', 'moron', 'loser', 'hate', 'kys'
+  ]
+  
+  // Check if name contains any inappropriate words
+  for (let word of inappropriateWords) {
+    if (lowerName.includes(word)) {
+      return true
+    }
+  }
+  
+  // Check for excessive special characters or numbers (likely fake names)
+  const specialCharCount = (lowerName.match(/[^a-z\s\-']/g) || []).length
+  if (specialCharCount > 3) {
+    return true
+  }
+  
+  // Check if name is too short (less than 2 characters)
+  if (lowerName.replace(/\s/g, '').length < 2) {
+    return true
+  }
+  
+  // Check for repeated characters (like "aaaaaaa" or "111111")
+  const hasExcessiveRepetition = /(.)\1{4,}/.test(lowerName)
+  if (hasExcessiveRepetition) {
+    return true
+  }
+  
+  return false
+}
+
 function App() {
   const [currentStep, setCurrentStep] = useState('selection')
   const [selectedSubjects, setSelectedSubjects] = useState([])
@@ -351,6 +391,12 @@ function App() {
       return
     }
 
+    // Check for inappropriate name
+    if (isInappropriateName(studentName)) {
+      alert('⚠️ The name you entered appears to be inappropriate or invalid. Please use your real name.')
+      return
+    }
+
     if (!GOOGLE_APPS_SCRIPT_URL) {
       alert('Google Apps Script URL is not configured. Please set VITE_GOOGLE_APPS_SCRIPT_URL in your environment.')
       return
@@ -424,7 +470,15 @@ function App() {
       }
     } catch (error) {
       console.error('Failed to save GPA to Google Doc:', error)
-      alert(`Failed to save to Google Doc. ${error.message ?? ''}`.trim())
+      const errorMessage = error.message || 'Unknown error occurred'
+      
+      // Show specific error message from server
+      if (errorMessage.includes('inappropriate') || errorMessage.includes('invalid')) {
+        alert(`⚠️ ${errorMessage}`)
+      } else {
+        alert(`❌ Failed to save to Google Doc.\n\n${errorMessage}`)
+      }
+      
       // Close the doc window if save failed
       if (docWindow && !docWindow.closed) {
         docWindow.close()
