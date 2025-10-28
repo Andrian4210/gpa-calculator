@@ -385,7 +385,6 @@ function App() {
 
       const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -394,21 +393,33 @@ function App() {
         })
       })
 
-      // With no-cors mode, we can't read the response, so just assume success
-      alert(`Successfully saved ${studentName}'s GPA (${gpa?.toFixed(2)}) to Google Doc!`)
-      
-      // Check if popup was blocked
-      if (!docWindow || docWindow.closed || typeof docWindow.closed === 'undefined') {
-        // Popup was blocked, provide a fallback
-        const openNow = confirm('The Google Doc popup was blocked. Click OK to open it now.')
-        if (openNow) {
-          window.open(docUrl, '_blank', 'noopener,noreferrer')
-        }
+      // Try to read the response
+      let responseData
+      try {
+        responseData = await response.json()
+      } catch (e) {
+        // If JSON parsing fails, assume success (for no-cors compatibility)
+        responseData = { success: true }
       }
-      
-      setShowSaveDialog(false)
-      setStudentName('')
-      setSaveAttempts(0)
+
+      if (responseData.success !== false) {
+        alert(`Successfully saved ${studentName}'s GPA (${gpa?.toFixed(2)}) to Google Doc!`)
+        
+        // Check if popup was blocked
+        if (!docWindow || docWindow.closed || typeof docWindow.closed === 'undefined') {
+          // Popup was blocked, provide a fallback
+          const openNow = confirm('The Google Doc popup was blocked. Click OK to open it now.')
+          if (openNow) {
+            window.open(docUrl, '_blank', 'noopener,noreferrer')
+          }
+        }
+        
+        setShowSaveDialog(false)
+        setStudentName('')
+        setSaveAttempts(0)
+      } else {
+        throw new Error(responseData.message || 'Failed to save to Google Doc')
+      }
     } catch (error) {
       console.error('Failed to save GPA to Google Doc:', error)
       alert(`Failed to save to Google Doc. ${error.message ?? ''}`.trim())
