@@ -1166,7 +1166,7 @@ function App() {
         </div>
 
         {/* Target GPA Dialog */}
-        <Dialog open={showTargetGPADialog} onOpenChange={(open) => { if (!open) handleSkipTargetGPA() }}>
+        <Dialog open={showTargetGPADialog} onOpenChange={() => {}}>
           <DialogContent className="liquid-glass-dialog">
             <DialogHeader>
               <DialogTitle className="liquid-glass-dialog-title">
