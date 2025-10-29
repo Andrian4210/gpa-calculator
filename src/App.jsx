@@ -115,6 +115,8 @@ function App() {
   const [targetGPAs, setTargetGPAs] = useState([13.5, 14.0, 14.5])
   const [expectedGrades, setExpectedGrades] = useState({}) // { subject: { 'Term 2': 'A', 'Term 3': 'B+', ... } }
   const [showProjectedGPA, setShowProjectedGPA] = useState(false)
+  const [showTargetGPADialog, setShowTargetGPADialog] = useState(false)
+  const [initialTargetGPA, setInitialTargetGPA] = useState('')
 
   const handleSubjectToggle = (subject, checked) => {
     if (checked) {
@@ -653,8 +655,28 @@ function App() {
 
   const proceedToGradeEntry = () => {
     if (selectedSubjects.length > 0) {
-      setCurrentStep('gradeEntry')
+      setShowTargetGPADialog(true)
     }
+  }
+
+  const handleTargetGPASubmit = () => {
+    const gpaValue = parseFloat(initialTargetGPA)
+    
+    if (initialTargetGPA && gpaValue && gpaValue > 0 && gpaValue <= 15) {
+      // Check if already exists (with some tolerance for floating point)
+      const exists = targetGPAs.some(target => Math.abs(target - gpaValue) < 0.01)
+      if (!exists) {
+        setTargetGPAs([...targetGPAs, gpaValue].sort((a, b) => a - b))
+      }
+    }
+    
+    setShowTargetGPADialog(false)
+    setCurrentStep('gradeEntry')
+  }
+
+  const handleSkipTargetGPA = () => {
+    setShowTargetGPADialog(false)
+    setCurrentStep('gradeEntry')
   }
 
   const resetCalculator = () => {
@@ -1142,6 +1164,62 @@ function App() {
             </div>
           </div>
         </div>
+
+        {/* Target GPA Dialog */}
+        <Dialog open={showTargetGPADialog} onOpenChange={(open) => !open && handleSkipTargetGPA()}>
+          <DialogContent className="liquid-glass-dialog">
+            <DialogHeader>
+              <DialogTitle className="liquid-glass-dialog-title">
+                <Target className="liquid-glass-dialog-icon" />
+                Set Your Target GPA
+              </DialogTitle>
+              <DialogDescription className="liquid-glass-dialog-description">
+                What GPA are you aiming for? This will help us show you what grades you need.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="liquid-glass-dialog-content" style={{ padding: '24px 20px' }}>
+              <div className="liquid-glass-input-group">
+                <label className="liquid-glass-input-label" style={{ marginBottom: '8px', display: 'block' }}>
+                  Target GPA (0.1 - 15.0):
+                </label>
+                <Input
+                  type="number"
+                  min="0.1"
+                  max="15"
+                  step="0.1"
+                  value={initialTargetGPA}
+                  onChange={(e) => setInitialTargetGPA(e.target.value)}
+                  placeholder="e.g., 13.5"
+                  className="liquid-glass-input"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleTargetGPASubmit()
+                    }
+                  }}
+                />
+              </div>
+              <p style={{ fontSize: '0.875rem', color: 'rgba(107, 114, 128, 0.8)', marginTop: '12px' }}>
+                You can skip this and add target GPAs later if you prefer.
+              </p>
+            </div>
+            <DialogFooter className="liquid-glass-dialog-footer" style={{ padding: '16px 20px', gap: '12px' }}>
+              <Button
+                onClick={handleSkipTargetGPA}
+                variant="outline"
+                className="liquid-glass-dialog-button liquid-glass-dialog-cancel"
+              >
+                Skip
+              </Button>
+              <Button
+                onClick={handleTargetGPASubmit}
+                className="liquid-glass-dialog-button liquid-glass-dialog-save"
+              >
+                <Target className="liquid-glass-button-icon-left" />
+                Set Target
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Save to Google Doc Dialog */}
         <Dialog open={showSaveDialog} onOpenChange={handleSaveDialogClose}>
