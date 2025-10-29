@@ -473,6 +473,242 @@ body {
   flex-direction: column;
 }
 
+.liquid-glass-guide-card {
+  margin-bottom: 1.5rem;
+}
+
+.liquid-glass-guide-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  color: rgba(55, 65, 81, 0.85);
+  font-size: 0.95rem;
+}
+
+.liquid-glass-guide-tip {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: rgba(79, 70, 229, 0.8);
+  font-weight: 500;
+}
+
+.liquid-glass-mode-switch {
+  display: inline-flex;
+  gap: 0.75rem;
+  padding: 0.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  margin: 1.5rem auto 1.75rem auto;
+}
+
+.liquid-glass-mode-button {
+  border: none;
+  background: transparent;
+  padding: 0.6rem 1.4rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: rgba(17, 24, 39, 0.7);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.liquid-glass-mode-button:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: rgba(17, 24, 39, 0.9);
+}
+
+.liquid-glass-mode-button.is-active {
+  background: rgba(99, 102, 241, 0.22);
+  color: rgba(17, 24, 39, 0.96);
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.25);
+}
+
+.liquid-glass-grade-entry-columns {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 960px) {
+  .liquid-glass-grade-entry-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.liquid-glass-subject-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.liquid-glass-subject-nav-button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(17, 24, 39, 0.85);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.liquid-glass-subject-nav-button:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.liquid-glass-subject-nav-button.is-active {
+  background: rgba(99, 102, 241, 0.24);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.25);
+  color: rgba(17, 24, 39, 0.95);
+}
+
+.liquid-glass-subject-nav-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.liquid-glass-subject-nav-weight {
+  font-size: 0.8rem;
+  color: rgba(55, 65, 81, 0.7);
+}
+
+.liquid-glass-subject-panel {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  min-height: 320px;
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.liquid-glass-subject-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.liquid-glass-subject-placeholder {
+  padding: 2rem;
+  border-radius: 1.25rem;
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(55, 65, 81, 0.75);
+  font-weight: 500;
+  text-align: center;
+}
+
+.liquid-glass-expected-subject {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.liquid-glass-expected-subject-name {
+  font-weight: 600;
+  color: rgba(49, 46, 129, 0.85);
+  margin-bottom: 0.75rem;
+}
+
+.liquid-glass-expected-terms {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.liquid-glass-expected-term {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.liquid-glass-expected-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(55, 65, 81, 0.8);
+}
+
+.liquid-glass-expected-select {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.liquid-glass-future-card {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.liquid-glass-future-suggestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.liquid-glass-future-suggestion {
+  padding: 1rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.liquid-glass-future-suggestion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: rgba(17, 24, 39, 0.85);
+}
+
+.liquid-glass-future-subject {
+  font-size: 0.95rem;
+}
+
+.liquid-glass-future-term {
+  font-size: 0.85rem;
+  color: rgba(55, 65, 81, 0.65);
+}
+
+.liquid-glass-future-suggestion-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: rgba(17, 24, 39, 0.8);
+  font-weight: 500;
+}
+
+.liquid-glass-future-grade {
+  font-size: 0.9rem;
+}
+
+.liquid-glass-future-impact {
+  font-size: 0.85rem;
+  color: rgba(34, 197, 94, 0.9);
+  font-weight: 600;
+}
+
+.liquid-glass-muted-text {
+  font-size: 0.9rem;
+  color: rgba(55, 65, 81, 0.75);
+  text-align: center;
+  margin: 0;
+}
+
 /* Mode Toggle Styles */
 .liquid-glass-mode-toggle {
   margin-bottom: 1rem;
@@ -943,6 +1179,12 @@ body {
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
+.liquid-glass-badge-warning {
+  background: rgba(251, 191, 36, 0.15);
+  color: rgba(217, 119, 6, 0.9);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+}
+
 .liquid-glass-requirement-details {
   margin-top: 1rem;
 }
@@ -1067,6 +1309,10 @@ body {
   color: rgba(239, 68, 68, 0.9);
 }
 
+.liquid-glass-warning-message {
+  color: rgba(217, 119, 6, 0.9);
+}
+
 /* Dialog Styles */
 .liquid-glass-dialog {
   background: rgba(255, 255, 255, 0.95) !important;
@@ -1076,6 +1322,10 @@ body {
   box-shadow: 
     0 16px 48px rgba(0, 0, 0, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+  position: relative;
+  z-index: 10000;
+  max-width: 500px;
+  width: 100%;
 }
 
 .liquid-glass-dialog-title {
@@ -1233,7 +1483,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  z-index: 9999;
   padding: 1.5rem;
 }
 

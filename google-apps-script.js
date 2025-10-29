@@ -117,7 +117,7 @@ function doPost(e) {
       for (let i = 0; i < 4; i++) {
         const cell = headerRow.getCell(i);
         cell.setBackgroundColor('#8B5CF6');
-        cell.getChild(0).asText().setForegroundColor('#FFFFFF').setBold(true);
+        cell.getChild(0).asText().setForegroundColor('#000000').setBold(true);
         cell.setPaddingTop(8).setPaddingBottom(8).setPaddingLeft(8).setPaddingRight(8);
       }
       
@@ -149,7 +149,7 @@ function doPost(e) {
         for (let i = 0; i < 4; i++) {
           const cell = headerRow.getCell(i);
           cell.setBackgroundColor('#8B5CF6');
-          cell.getChild(0).asText().setForegroundColor('#FFFFFF').setBold(true);
+          cell.getChild(0).asText().setForegroundColor('#000000').setBold(true);
           cell.setPaddingTop(8).setPaddingBottom(8).setPaddingLeft(8).setPaddingRight(8);
         }
       }
@@ -175,6 +175,7 @@ function doPost(e) {
       if (table.getNumRows() % 2 === 0) {
         cell.setBackgroundColor('#F3F4F6');
       }
+      cell.getChild(0).asText().setForegroundColor('#000000');
     }
     
     // Save the document
