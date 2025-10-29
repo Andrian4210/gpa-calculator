@@ -113,6 +113,8 @@ function App() {
   const [userDismissedDialog, setUserDismissedDialog] = useState(false)
   const [customTargetGPA, setCustomTargetGPA] = useState('')
   const [targetGPAs, setTargetGPAs] = useState([13.5, 14.0, 14.5])
+  const [expectedGrades, setExpectedGrades] = useState({}) // { subject: { 'Term 2': 'A', 'Term 3': 'B+', ... } }
+  const [showProjectedGPA, setShowProjectedGPA] = useState(false)
 
   const handleSubjectToggle = (subject, checked) => {
     if (checked) {
@@ -383,6 +385,115 @@ function App() {
     })
 
     return { possible: true, grades: requiredGrades }
+  }
+
+  const calculateProjectedGPA = () => {
+    let totalWeightedScore = 0
+    let totalWeight = 0
+
+    selectedSubjects.forEach(subject => {
+      const weight = SUBJECTS[subject]
+      const finalGrade = finalGrades[subject]
+      const termsForSubject = getTermsForSubject(subject)
+      
+      // Use existing final grade if available
+      if (finalGrade && finalGrade.points) {
+        totalWeightedScore += finalGrade.points * weight
+        totalWeight += weight
+      } else {
+        // Check for expected grades for future terms
+        let projectedPoints = 0
+        let hasExpectedGrades = false
+        
+        termsForSubject.forEach(term => {
+          const currentTermIndex = TERMS.indexOf(currentTerm)
+          const termIndex = TERMS.indexOf(term)
+          
+          if (termIndex > currentTermIndex && expectedGrades[subject]?.[term]) {
+            hasExpectedGrades = true
+            projectedPoints += GRADES[expectedGrades[subject][term]]
+          } else if (termGrades[subject]?.[term]) {
+            projectedPoints += GRADES[termGrades[subject][term]]
+          }
+        })
+        
+        if (hasExpectedGrades) {
+          const avgPoints = projectedPoints / termsForSubject.length
+          totalWeightedScore += avgPoints * weight
+          totalWeight += weight
+        }
+      }
+    })
+
+    return totalWeight > 0 ? totalWeightedScore / totalWeight : 0
+  }
+
+  const suggestImprovements = (targetGPA) => {
+    const currentGPA = gpa || calculateGPA()
+    if (currentGPA >= targetGPA) {
+      return { possible: true, suggestions: [] }
+    }
+
+    // Find subjects that could be improved
+    const suggestions = []
+    const subjectsWithGrades = selectedSubjects.filter(subject => finalGrades[subject])
+
+    subjectsWithGrades.forEach(subject => {
+      const weight = SUBJECTS[subject]
+      const currentGrade = finalGrades[subject]
+      
+      // Try each higher grade and see impact
+      const gradeOptions = Object.keys(GRADES).reverse() // Start from highest
+      
+      for (let grade of gradeOptions) {
+        if (GRADES[grade] > currentGrade.points) {
+          // Calculate GPA if this subject was improved
+          let newTotalWeightedScore = 0
+          let newTotalWeight = 0
+
+          selectedSubjects.forEach(s => {
+            const w = SUBJECTS[s]
+            const fg = s === subject ? { points: GRADES[grade] } : finalGrades[s]
+            
+            if (fg && fg.points) {
+              newTotalWeightedScore += fg.points * w
+              newTotalWeight += w
+            }
+          })
+
+          const newGPA = newTotalWeight > 0 ? newTotalWeightedScore / newTotalWeight : 0
+          
+          if (newGPA >= targetGPA) {
+            suggestions.push({
+              subject,
+              from: currentGrade.grade,
+              to: grade,
+              impact: (newGPA - currentGPA).toFixed(2)
+            })
+            break // Found the minimum improvement needed for this subject
+          }
+        }
+      }
+    })
+
+    // Sort by impact (highest impact first)
+    suggestions.sort((a, b) => parseFloat(b.impact) - parseFloat(a.impact))
+
+    return {
+      possible: suggestions.length > 0,
+      suggestions: suggestions.slice(0, 3) // Return top 3 suggestions
+    }
+  }
+
+  const handleExpectedGradeChange = (subject, term, grade) => {
+    setExpectedGrades(prev => ({
+      ...prev,
+      [subject]: {
+        ...(prev[subject] || {}),
+        [term]: grade
+      }
+    }))
+    setShowProjectedGPA(true)
   }
 
   const saveToGoogleDoc = async () => {
@@ -856,6 +967,66 @@ function App() {
                 </div>
               </div>
             </div>
+
+            {/* Expected Grades Section */}
+            <div className="liquid-glass-card liquid-glass-expected-grades-card">
+              <div className="liquid-glass-card-header">
+                <div className="liquid-glass-card-title">
+                  <Target className="liquid-glass-card-icon" />
+                  Expected Grades (Optional)
+                </div>
+                <p className="liquid-glass-card-description">
+                  Predict your future grades to see projected GPA
+                </p>
+              </div>
+              <div className="liquid-glass-card-content">
+                {selectedSubjects.filter(subject => {
+                  const termsForSubject = getTermsForSubject(subject)
+                  const currentTermIndex = TERMS.indexOf(currentTerm)
+                  return termsForSubject.some(term => TERMS.indexOf(term) > currentTermIndex)
+                }).map(subject => {
+                  const termsForSubject = getTermsForSubject(subject)
+                  const currentTermIndex = TERMS.indexOf(currentTerm)
+                  const futureTerms = termsForSubject.filter(term => TERMS.indexOf(term) > currentTermIndex)
+                  
+                  if (futureTerms.length === 0) return null
+                  
+                  return (
+                    <div key={subject} className="liquid-glass-expected-subject">
+                      <h4 className="liquid-glass-expected-subject-name">{subject}</h4>
+                      <div className="liquid-glass-expected-terms">
+                        {futureTerms.map(term => (
+                          <div key={term} className="liquid-glass-expected-term">
+                            <label className="liquid-glass-expected-label">{term}</label>
+                            <Select
+                              value={expectedGrades[subject]?.[term] || ''}
+                              onValueChange={(value) => handleExpectedGradeChange(subject, term, value)}
+                            >
+                              <SelectTrigger className="liquid-glass-select liquid-glass-expected-select">
+                                <SelectValue placeholder="Expected grade" />
+                              </SelectTrigger>
+                              <SelectContent className="liquid-glass-select-content">
+                                {GRADE_OPTIONS.map(grade => (
+                                  <SelectItem key={grade} value={grade} className="liquid-glass-select-item">
+                                    {grade} ({GRADES[grade]} pts)
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+                {showProjectedGPA && (
+                  <div className="liquid-glass-projected-gpa">
+                    <span className="liquid-glass-projected-label">Projected GPA:</span>
+                    <span className="liquid-glass-projected-value">{calculateProjectedGPA().toFixed(2)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Results Section */}
@@ -879,7 +1050,7 @@ function App() {
             </div>
 
             {/* Save to Google Doc Button */}
-            {gpa && gpa > 0 && (
+            {gpa && gpa > 0 && Object.keys(finalGrades).length > 0 && (
               <div className="liquid-glass-card">
                 <div className="liquid-glass-card-content">
                   <button 
@@ -921,7 +1092,8 @@ function App() {
                         placeholder="e.g., 13.8"
                         className="liquid-glass-input liquid-glass-custom-target-input"
                       />
-                      <Button
+                      <button
+                        type="button"
                         onClick={() => {
                           const gpaValue = parseFloat(customTargetGPA)
                           if (gpaValue && gpaValue > 0 && gpaValue <= 15 && !targetGPAs.includes(gpaValue)) {
@@ -937,7 +1109,7 @@ function App() {
                         className="liquid-glass-button liquid-glass-add-target-button"
                       >
                         Add Target
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -946,6 +1118,7 @@ function App() {
                   {targetGPAs.map(targetGPA => {
                     const requirements = calculateRequiredGrades(targetGPA)
                     const hasUnenteredGrades = Object.keys(requirements.grades).length > 0
+                    const improvements = suggestImprovements(targetGPA)
                     
                     return (
                       <div key={targetGPA} className="liquid-glass-requirement-item">
@@ -981,9 +1154,25 @@ function App() {
                           </div>
                         )}
                         
+                        {requirements.possible && !hasUnenteredGrades && gpa && gpa < targetGPA && improvements.possible && (
+                          <div className="liquid-glass-requirement-details">
+                            <p className="liquid-glass-requirement-label">💡 Suggested improvements to reach target:</p>
+                            <div className="liquid-glass-requirement-grades">
+                              {improvements.suggestions.map((suggestion, idx) => (
+                                <div key={idx} className="liquid-glass-requirement-grade">
+                                  <span className="liquid-glass-requirement-subject">{suggestion.subject}:</span>
+                                  <div className="liquid-glass-improvement-badge">
+                                    {suggestion.from} → {suggestion.to} (+{suggestion.impact} GPA)
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
                         {requirements.possible && !hasUnenteredGrades && (
                           <p className="liquid-glass-requirement-message liquid-glass-success-message">
-                            {gpa >= targetGPA ? "Already achieved!" : "All grades entered"}
+                            {gpa >= targetGPA ? "Already achieved! 🎉" : "All grades entered"}
                           </p>
                         )}
                         
