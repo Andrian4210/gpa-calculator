@@ -967,66 +967,6 @@ function App() {
                 </div>
               </div>
             </div>
-
-            {/* Expected Grades Section */}
-            <div className="liquid-glass-card liquid-glass-expected-grades-card">
-              <div className="liquid-glass-card-header">
-                <div className="liquid-glass-card-title">
-                  <Target className="liquid-glass-card-icon" />
-                  Expected Grades (Optional)
-                </div>
-                <p className="liquid-glass-card-description">
-                  Predict your future grades to see projected GPA
-                </p>
-              </div>
-              <div className="liquid-glass-card-content">
-                {selectedSubjects.filter(subject => {
-                  const termsForSubject = getTermsForSubject(subject)
-                  const currentTermIndex = TERMS.indexOf(currentTerm)
-                  return termsForSubject.some(term => TERMS.indexOf(term) > currentTermIndex)
-                }).map(subject => {
-                  const termsForSubject = getTermsForSubject(subject)
-                  const currentTermIndex = TERMS.indexOf(currentTerm)
-                  const futureTerms = termsForSubject.filter(term => TERMS.indexOf(term) > currentTermIndex)
-                  
-                  if (futureTerms.length === 0) return null
-                  
-                  return (
-                    <div key={subject} className="liquid-glass-expected-subject">
-                      <h4 className="liquid-glass-expected-subject-name">{subject}</h4>
-                      <div className="liquid-glass-expected-terms">
-                        {futureTerms.map(term => (
-                          <div key={term} className="liquid-glass-expected-term">
-                            <label className="liquid-glass-expected-label">{term}</label>
-                            <Select
-                              value={expectedGrades[subject]?.[term] || ''}
-                              onValueChange={(value) => handleExpectedGradeChange(subject, term, value)}
-                            >
-                              <SelectTrigger className="liquid-glass-select liquid-glass-expected-select">
-                                <SelectValue placeholder="Expected grade" />
-                              </SelectTrigger>
-                              <SelectContent className="liquid-glass-select-content">
-                                {GRADE_OPTIONS.map(grade => (
-                                  <SelectItem key={grade} value={grade} className="liquid-glass-select-item">
-                                    {grade} ({GRADES[grade]} pts)
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })}
-                {showProjectedGPA && (
-                  <div className="liquid-glass-projected-gpa">
-                    <span className="liquid-glass-projected-label">Projected GPA:</span>
-                    <span className="liquid-glass-projected-value">{calculateProjectedGPA().toFixed(2)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
 
           {/* Results Section */}
@@ -1042,7 +982,7 @@ function App() {
               <div className="liquid-glass-card-content">
                 <div className="liquid-glass-gpa-display">
                   <div className="liquid-glass-gpa-number">
-                    {gpa !== null ? gpa.toFixed(2) : '--'}
+                    {gpa !== null && gpa > 0 ? gpa.toFixed(2) : '--'}
                   </div>
                   <div className="liquid-glass-gpa-max">out of 15.00</div>
                 </div>
@@ -1061,6 +1001,72 @@ function App() {
                     <span>Save to Google Doc</span>
                     <FileText className="liquid-glass-button-icon" />
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* Expected Grades Section */}
+            {selectedSubjects.some(subject => {
+              const termsForSubject = getTermsForSubject(subject)
+              const currentTermIndex = TERMS.indexOf(currentTerm)
+              return termsForSubject.some(term => TERMS.indexOf(term) > currentTermIndex)
+            }) && (
+              <div className="liquid-glass-card liquid-glass-expected-grades-card">
+                <div className="liquid-glass-card-header">
+                  <div className="liquid-glass-card-title">
+                    <Target className="liquid-glass-card-icon" />
+                    Expected Grades (Optional)
+                  </div>
+                  <p className="liquid-glass-card-description">
+                    Predict your future grades to see projected GPA
+                  </p>
+                </div>
+                <div className="liquid-glass-card-content">
+                  {selectedSubjects.filter(subject => {
+                    const termsForSubject = getTermsForSubject(subject)
+                    const currentTermIndex = TERMS.indexOf(currentTerm)
+                    return termsForSubject.some(term => TERMS.indexOf(term) > currentTermIndex)
+                  }).map(subject => {
+                    const termsForSubject = getTermsForSubject(subject)
+                    const currentTermIndex = TERMS.indexOf(currentTerm)
+                    const futureTerms = termsForSubject.filter(term => TERMS.indexOf(term) > currentTermIndex)
+                    
+                    if (futureTerms.length === 0) return null
+                    
+                    return (
+                      <div key={subject} className="liquid-glass-expected-subject">
+                        <h4 className="liquid-glass-expected-subject-name">{subject}</h4>
+                        <div className="liquid-glass-expected-terms">
+                          {futureTerms.map(term => (
+                            <div key={term} className="liquid-glass-expected-term">
+                              <label className="liquid-glass-expected-label">{term}</label>
+                              <Select
+                                value={expectedGrades[subject]?.[term] || ''}
+                                onValueChange={(value) => handleExpectedGradeChange(subject, term, value)}
+                              >
+                                <SelectTrigger className="liquid-glass-select liquid-glass-expected-select">
+                                  <SelectValue placeholder="Expected grade" />
+                                </SelectTrigger>
+                                <SelectContent className="liquid-glass-select-content">
+                                  {GRADE_OPTIONS.map(grade => (
+                                    <SelectItem key={grade} value={grade} className="liquid-glass-select-item">
+                                      {grade} ({GRADES[grade]} pts)
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {showProjectedGPA && (
+                    <div className="liquid-glass-projected-gpa">
+                      <span className="liquid-glass-projected-label">Projected GPA:</span>
+                      <span className="liquid-glass-projected-value">{calculateProjectedGPA().toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
