@@ -990,7 +990,7 @@ function App() {
             </div>
 
             {/* Save to Google Doc Button */}
-            {gpa && gpa > 0 && Object.keys(finalGrades).length > 0 && (
+            {(gpa && gpa > 0 && Object.keys(finalGrades).length > 0) ? (
               <div className="liquid-glass-card">
                 <div className="liquid-glass-card-content">
                   <button 
@@ -1003,73 +1003,7 @@ function App() {
                   </button>
                 </div>
               </div>
-            )}
-
-            {/* Expected Grades Section */}
-            {selectedSubjects.some(subject => {
-              const termsForSubject = getTermsForSubject(subject)
-              const currentTermIndex = TERMS.indexOf(currentTerm)
-              return termsForSubject.some(term => TERMS.indexOf(term) > currentTermIndex)
-            }) && (
-              <div className="liquid-glass-card liquid-glass-expected-grades-card">
-                <div className="liquid-glass-card-header">
-                  <div className="liquid-glass-card-title">
-                    <Target className="liquid-glass-card-icon" />
-                    Expected Grades (Optional)
-                  </div>
-                  <p className="liquid-glass-card-description">
-                    Predict your future grades to see projected GPA
-                  </p>
-                </div>
-                <div className="liquid-glass-card-content">
-                  {selectedSubjects.filter(subject => {
-                    const termsForSubject = getTermsForSubject(subject)
-                    const currentTermIndex = TERMS.indexOf(currentTerm)
-                    return termsForSubject.some(term => TERMS.indexOf(term) > currentTermIndex)
-                  }).map(subject => {
-                    const termsForSubject = getTermsForSubject(subject)
-                    const currentTermIndex = TERMS.indexOf(currentTerm)
-                    const futureTerms = termsForSubject.filter(term => TERMS.indexOf(term) > currentTermIndex)
-                    
-                    if (futureTerms.length === 0) return null
-                    
-                    return (
-                      <div key={subject} className="liquid-glass-expected-subject">
-                        <h4 className="liquid-glass-expected-subject-name">{subject}</h4>
-                        <div className="liquid-glass-expected-terms">
-                          {futureTerms.map(term => (
-                            <div key={term} className="liquid-glass-expected-term">
-                              <label className="liquid-glass-expected-label">{term}</label>
-                              <Select
-                                value={expectedGrades[subject]?.[term] || ''}
-                                onValueChange={(value) => handleExpectedGradeChange(subject, term, value)}
-                              >
-                                <SelectTrigger className="liquid-glass-select liquid-glass-expected-select">
-                                  <SelectValue placeholder="Expected grade" />
-                                </SelectTrigger>
-                                <SelectContent className="liquid-glass-select-content">
-                                  {GRADE_OPTIONS.map(grade => (
-                                    <SelectItem key={grade} value={grade} className="liquid-glass-select-item">
-                                      {grade} ({GRADES[grade]} pts)
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })}
-                  {showProjectedGPA && (
-                    <div className="liquid-glass-projected-gpa">
-                      <span className="liquid-glass-projected-label">Projected GPA:</span>
-                      <span className="liquid-glass-projected-value">{calculateProjectedGPA().toFixed(2)}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            ) : null}
 
             {/* Grade Requirements */}
             <div className="liquid-glass-card liquid-glass-requirements-card">
@@ -1100,18 +1034,31 @@ function App() {
                       />
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault()
                           const gpaValue = parseFloat(customTargetGPA)
-                          if (gpaValue && gpaValue > 0 && gpaValue <= 15 && !targetGPAs.includes(gpaValue)) {
-                            setTargetGPAs([...targetGPAs, gpaValue].sort((a, b) => a - b))
-                            setCustomTargetGPA('')
-                          } else if (targetGPAs.includes(gpaValue)) {
-                            alert('This target GPA is already in the list!')
-                          } else {
-                            alert('Please enter a valid GPA between 0 and 15')
+                          
+                          if (!gpaValue || isNaN(gpaValue)) {
+                            alert('Please enter a valid number')
+                            return
                           }
+                          
+                          if (gpaValue <= 0 || gpaValue > 15) {
+                            alert('Please enter a GPA between 0.1 and 15')
+                            return
+                          }
+                          
+                          // Check if already exists (with some tolerance for floating point)
+                          const exists = targetGPAs.some(target => Math.abs(target - gpaValue) < 0.01)
+                          if (exists) {
+                            alert('This target GPA is already in the list!')
+                            return
+                          }
+                          
+                          setTargetGPAs([...targetGPAs, gpaValue].sort((a, b) => a - b))
+                          setCustomTargetGPA('')
                         }}
-                        disabled={!customTargetGPA}
+                        disabled={!customTargetGPA || customTargetGPA.trim() === ''}
                         className="liquid-glass-button liquid-glass-add-target-button"
                       >
                         Add Target
